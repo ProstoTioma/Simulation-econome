@@ -19,6 +19,7 @@ class Simulation:
         self.dead_count = 0
 
 
+
     def run(self):
         stop = False
         while not stop:

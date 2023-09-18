@@ -3,12 +3,11 @@ import random
 
 
 class Entity:
-    def __init__(self, age, colour, speed, need_food, strength, x, y, move):
+    def __init__(self, age, colour, speed, need_food, x, y, move):
         self.age = age
         self.colour = colour
         self.speed = speed
         self.need_food = need_food
-        self.strength = strength
         self.x = x
         self.y = y
         self.move = move

@@ -26,17 +26,23 @@ class Simulation:
     def create_population(self, n, new_teachers=False):
 
         if new_teachers:
-            self.population.append(Entity(0, (200, 200, 200), random.randint(1, 3),
+            teacher = Entity(0, (200, 200, 200), random.randint(1, 3),
                                           random.randint(0, 800), random.randint(0, 800),
-                                          [random.randint(-1, 1), random.randint(-1, 1)], is_student=False))
+                                          [random.randint(-1, 1), random.randint(-1, 1)], is_student=False)
+            self.population.append(teacher)
+
+            self.teachers.append(teacher)
 
 
 
         else:
             for i in range(n):
-                self.population.append(Entity(0, random.choice(self.colours), random.randint(1, 3),
+                student = Entity(0, random.choice(self.colours), random.randint(1, 3),
                                               random.randint(0, 800), random.randint(0, 800),
-                                              [random.randint(-1, 1), random.randint(-1, 1)]))
+                                              [random.randint(-1, 1), random.randint(-1, 1)])
+
+                self.population.append(student)
+                self.students.append(student)
                 i += 1
 
     def run(self):
@@ -64,6 +70,9 @@ class Simulation:
                         student.alive = False  # Didn't complete teacher training
 
             self.years_passed += (1 / dt)
+            print(len(self.teachers))
+
+
 
 
 

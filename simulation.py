@@ -14,7 +14,6 @@ class Simulation:
         self.population = []
         self.colours = [(200, 0, 0), (0, 200, 0), (0, 0, 200)]
         self.clock = pygame.time.Clock()
-        self.fd = []
         self.dead_count = 0
 
         self.students = []
@@ -73,9 +72,6 @@ class Simulation:
                     pygame.draw.circle(self.screen.screen, self.population[i].colour,
                                        (self.population[i].x, self.population[i].y), 1)
                     self.population[i].live(dt)
-                for i in range(len(self.fd)):
-                    if self.fd[i].alive:
-                        pygame.draw.circle(self.screen.screen, (50, 50, 50), (self.fd[i].x, self.fd[i].y), 1)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

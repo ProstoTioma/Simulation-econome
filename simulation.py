@@ -53,7 +53,8 @@ class Simulation:
 
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
-            print(self.years_passed // dt)
+            print(round(self.years_passed // dt))
+            print(len(self.students))
 
             # Student-to-Teacher Transition
             for student in self.students:
@@ -64,13 +65,13 @@ class Simulation:
                             if random.random() < self.teacher_completion_rate:
                                 student.is_student = False
                                 self.teachers.append(student)
+                                self.students.remove(student)
                                 self.create_population(1, new_teachers=True)
 
                     else:
                         student.alive = False  # Didn't complete teacher training
 
             self.years_passed += (1 / dt)
-            print(len(self.teachers))
 
 
 

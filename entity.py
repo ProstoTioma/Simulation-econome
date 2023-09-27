@@ -20,3 +20,7 @@ class Entity:
         self.x += self.move[0] * self.speed
         self.y += self.move[1] * self.speed
 
+
+        if self.age > 20:
+            self.alive = False
+

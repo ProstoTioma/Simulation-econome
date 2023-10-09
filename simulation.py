@@ -49,26 +49,40 @@ class Simulation:
 
 
 
-        '''else:
+        else:
             for i in range(n):
                 student = Entity(0, random.choice(self.colours), random.randint(1, 3),
                                               random.randint(0, 800), random.randint(0, 800),
                                               [random.randint(-1, 1), random.randint(-1, 1)])
 
+                student.x = random.randint(0, self.screenSize)
+                student.y = random.randint(0, self.screenSize)
+                is_touching = self.touch(student, self.population)
+                at_border = self.border(student)
+
+                while is_touching or at_border:
+                    student.x = random.randint(0, self.screenSize)
+                    student.y = random.randint(0, self.screenSize)
+                    is_touching = self.touch(student, self.population)
+                    at_border = self.border(student)
+
                 self.population.append(student)
+
                 self.students.append(student)
+
                 i += 1
-'''
+
     def run(self):
         self.create_population(100, new_teachers=True)
+        self.create_population(100, new_teachers=False)
         stop = False
         while not stop:
             dt = self.clock.tick(60)
 
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
-            #print(round(self.years_passed // dt))
-            #print(len(self.students))
+            print(round(self.years_passed // dt))
+            print(len(self.students))
 
             # Student-to-Teacher Transition
             for student in self.students:
@@ -93,8 +107,12 @@ class Simulation:
 
             for i in range(len(self.population)):
                 if self.population[i].alive:
-                    pygame.draw.circle(self.screen.screen, self.population[i].colour,
-                                       (self.population[i].x, self.population[i].y), self.teacher_size)
+                    if self.population[i].is_student:
+                        pygame.draw.circle(self.screen.screen, self.population[i].colour,
+                                           (self.population[i].x, self.population[i].y), self.student_size)
+                    else:
+                        pygame.draw.circle(self.screen.screen, self.population[i].colour,
+                                           (self.population[i].x, self.population[i].y), self.teacher_size)
                     self.population[i].live(dt)
 
             for event in pygame.event.get():
@@ -120,7 +138,6 @@ class Simulation:
                 or entity.y > self.screenSize - (self.teacher_size * 2 + self.student_size * 4.4):
             return True
         return False
-
 
 
 

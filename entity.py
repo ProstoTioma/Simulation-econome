@@ -14,10 +14,8 @@ class Entity:
         self.is_studying = is_studying
 
     def live(self, dt):
-        self.age += 1 / dt
+        self.age += 1 / dt / 10
 
-
-
-        #if self.age > 20:
-        #    self.alive = False
+        if self.age > 20:
+            self.alive = False
 

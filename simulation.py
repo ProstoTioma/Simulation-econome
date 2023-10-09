@@ -28,8 +28,6 @@ class Simulation:
         self.student_size = 2
 
     def create_population(self, n, new_teachers=False):
-        n_touch = 0
-
         if new_teachers:
             for i in range(n):
                 teacher = Entity(0, (200, 200, 200), random.randint(1, 3),
@@ -37,13 +35,13 @@ class Simulation:
                 teacher.x = random.randint(0, self.screenSize)
                 teacher.y = random.randint(0, self.screenSize)
                 is_touching = self.touch(teacher, self.population)
-                print(n_touch)
+                at_border = self.border(teacher)
 
-                while is_touching:
-                    n_touch += 1
+                while is_touching or at_border:
                     teacher.x = random.randint(0, self.screenSize)
                     teacher.y = random.randint(0, self.screenSize)
                     is_touching = self.touch(teacher, self.population)
+                    at_border = self.border(teacher)
 
                 self.population.append(teacher)
 
@@ -114,6 +112,17 @@ class Simulation:
         else:
             return False
         return False
+
+    def border(self, entity):
+        if entity.x < (self.teacher_size * 2 + self.student_size * 4.4)\
+                or entity.y < (self.teacher_size * 2 + self.student_size * 4.4)\
+                or entity.x > self.screenSize - (self.teacher_size * 2 + self.student_size * 4.4)\
+                or entity.y > self.screenSize - (self.teacher_size * 2 + self.student_size * 4.4):
+            return True
+        return False
+
+
+
 
 
 

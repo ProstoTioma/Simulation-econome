@@ -1,5 +1,6 @@
 import random
 import time
+import math
 
 from screen import Screen
 import pygame
@@ -23,19 +24,34 @@ class Simulation:
         self.teacher_completion_rate = 0.60  # 60% of students become teachers
         self.years_passed = 0
 
+        self.teacher_size = 10
+        self.student_size = 2
+
     def create_population(self, n, new_teachers=False):
+        n_touch = 0
 
         if new_teachers:
-            teacher = Entity(0, (200, 200, 200), random.randint(1, 3),
-                                          random.randint(0, 800), random.randint(0, 800),
-                                          [random.randint(-1, 1), random.randint(-1, 1)], is_student=False)
-            self.population.append(teacher)
+            for i in range(n):
+                teacher = Entity(0, (200, 200, 200), random.randint(1, 3),
+                                              random.randint(0, 800), random.randint(0, 800), is_student=False)
+                teacher.x = random.randint(0, self.screenSize)
+                teacher.y = random.randint(0, self.screenSize)
+                is_touching = self.touch(teacher, self.population)
+                print(n_touch)
 
-            self.teachers.append(teacher)
+                while is_touching:
+                    n_touch += 1
+                    teacher.x = random.randint(0, self.screenSize)
+                    teacher.y = random.randint(0, self.screenSize)
+                    is_touching = self.touch(teacher, self.population)
+
+                self.population.append(teacher)
+
+                self.teachers.append(teacher)
 
 
 
-        else:
+        '''else:
             for i in range(n):
                 student = Entity(0, random.choice(self.colours), random.randint(1, 3),
                                               random.randint(0, 800), random.randint(0, 800),
@@ -44,24 +60,24 @@ class Simulation:
                 self.population.append(student)
                 self.students.append(student)
                 i += 1
-
+'''
     def run(self):
-        self.create_population(1000)
+        self.create_population(100, new_teachers=True)
         stop = False
         while not stop:
             dt = self.clock.tick(60)
 
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
-            print(round(self.years_passed // dt))
-            print(len(self.students))
+            #print(round(self.years_passed // dt))
+            #print(len(self.students))
 
             # Student-to-Teacher Transition
             for student in self.students:
-                if student.age > 12:
+                if student.age > 13:
                     if random.random() < self.teacher_conversion_rate or student.is_studying:
                         student.is_studying = True
-                        if student.age > 16:
+                        if student.age > 19:
                             if random.random() < self.teacher_completion_rate:
                                 student.is_student = False
                                 self.teachers.append(student)
@@ -80,7 +96,7 @@ class Simulation:
             for i in range(len(self.population)):
                 if self.population[i].alive:
                     pygame.draw.circle(self.screen.screen, self.population[i].colour,
-                                       (self.population[i].x, self.population[i].y), 1)
+                                       (self.population[i].x, self.population[i].y), self.teacher_size)
                     self.population[i].live(dt)
 
             for event in pygame.event.get():
@@ -88,3 +104,17 @@ class Simulation:
                     pygame.quit()
                     stop = True
                     break
+
+    def touch(self, entity, population):
+        if population:
+            for pop in population:
+                if (math.sqrt((entity.x - pop.x)**2 + (entity.y - pop.y)**2)) \
+                        < (self.teacher_size * 2 + self.student_size * 4.4):
+                    return True
+        else:
+            return False
+        return False
+
+
+
+

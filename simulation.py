@@ -30,7 +30,7 @@ class Simulation:
     def create_population(self, n, new_teachers=False):
         if new_teachers:
             for i in range(n):
-                teacher = Entity(0, (200, 200, 200), random.randint(1, 3),
+                teacher = Entity(len(self.teachers) + 1, 0, (200, 200, 200), random.randint(1, 3),
                                               random.randint(0, 800), random.randint(0, 800), is_student=False)
                 teacher.x = random.randint(0, self.screenSize)
                 teacher.y = random.randint(0, self.screenSize)
@@ -49,9 +49,10 @@ class Simulation:
 
 
 
+
         else:
             for i in range(n):
-                student = Entity(0, random.choice(self.colours), random.randint(1, 3),
+                student = Entity(len(self.students) + 1, 0, random.choice(self.colours), random.randint(1, 3),
                                               random.randint(0, 800), random.randint(0, 800),
                                               [random.randint(-1, 1), random.randint(-1, 1)])
 
@@ -65,6 +66,8 @@ class Simulation:
                     student.y = random.randint(0, self.screenSize)
                     is_touching = self.touch(student, self.population)
                     at_border = self.border(student)
+
+                random.choice(self.teachers).students.append(student)
 
                 self.population.append(student)
 
@@ -107,12 +110,12 @@ class Simulation:
 
             for i in range(len(self.population)):
                 if self.population[i].alive:
-                    if self.population[i].is_student:
-                        pygame.draw.circle(self.screen.screen, self.population[i].colour,
-                                           (self.population[i].x, self.population[i].y), self.student_size)
-                    else:
+                    if not self.population[i].is_student:
                         pygame.draw.circle(self.screen.screen, self.population[i].colour,
                                            (self.population[i].x, self.population[i].y), self.teacher_size)
+                        for student in self.population[i].students:
+                            pygame.draw.circle(self.screen.screen, student.colour,
+                                               (self.population[i].x + random.randint(-20, 20), self.population[i].y + random.randint(-20, 20)), self.student_size)
                     self.population[i].live(dt)
 
             for event in pygame.event.get():

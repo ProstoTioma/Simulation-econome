@@ -3,7 +3,8 @@ import random
 
 
 class Entity:
-    def __init__(self, age, colour, x, y, is_studying=False, is_student=True):
+    def __init__(self, id, age, colour, x, y, is_studying=False, is_student=True):
+        self.id = id
         self.age = age
         self.colour = colour
         self.x = x
@@ -12,6 +13,7 @@ class Entity:
         self.deathAge = random.uniform(1, 2) * 60
         self.is_student = is_student
         self.is_studying = is_studying
+        self.students = []
 
     def live(self, dt):
         self.age += 1 / dt / 10

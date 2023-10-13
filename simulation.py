@@ -61,13 +61,16 @@ class Simulation:
                 is_touching = self.touch(student, self.population)
                 at_border = self.border(student)
 
+                teacher = random.choice(self.teachers)
+                teacher.students.append(student)
+                student.x = teacher.x + random.randint(-45, 45)
+                student.y = teacher.y + random.randint(-45, 45)
+
                 while is_touching or at_border:
-                    student.x = random.randint(0, self.screenSize)
-                    student.y = random.randint(0, self.screenSize)
+                    student.x = teacher.x + random.randint(-45, 45)
+                    student.y = teacher.y + random.randint(-45, 45)
                     is_touching = self.touch(student, self.population)
                     at_border = self.border(student)
-
-                random.choice(self.teachers).students.append(student)
 
                 self.population.append(student)
 
@@ -85,7 +88,6 @@ class Simulation:
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
             print(round(self.years_passed // dt))
-            print(len(self.students))
 
             # Student-to-Teacher Transition
             for student in self.students:
@@ -102,21 +104,23 @@ class Simulation:
                     else:
                         student.alive = False  # Didn't complete teacher training
 
+
+
+
             self.years_passed += (1 / dt)
 
 
 
 
 
-            for i in range(len(self.population)):
-                if self.population[i].alive:
-                    if not self.population[i].is_student:
-                        pygame.draw.circle(self.screen.screen, self.population[i].colour,
-                                           (self.population[i].x, self.population[i].y), self.teacher_size)
-                        for student in self.population[i].students:
-                            pygame.draw.circle(self.screen.screen, student.colour,
-                                               (self.population[i].x + random.randint(-20, 20), self.population[i].y + random.randint(-20, 20)), self.student_size)
-                    self.population[i].live(dt)
+            for teacher in self.teachers:
+                if teacher.alive:
+                    pygame.draw.circle(self.screen.screen, teacher.colour,
+                                       (teacher.x, teacher.y), self.teacher_size)
+                    for student in teacher.students:
+                        pygame.draw.circle(self.screen.screen, student.colour,
+                                           (student.x, student.y), self.student_size)
+                teacher.live(dt)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

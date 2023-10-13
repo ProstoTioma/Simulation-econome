@@ -3,8 +3,8 @@ import random
 
 
 class Entity:
-    def __init__(self, id, age, colour, x, y, is_studying=False, is_student=True):
-        self.id = id
+    def __init__(self, teacher_id, age, colour, x, y, is_studying=False, is_student=True):
+        self.id = teacher_id
         self.age = age
         self.colour = colour
         self.x = x

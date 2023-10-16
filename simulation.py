@@ -12,7 +12,6 @@ class Simulation:
     def __init__(self):
         self.screenSize = 800
         self.screen = Screen(self.screenSize, self.screenSize)
-        self.population = []
         self.colours = [(200, 0, 0), (0, 200, 0), (0, 0, 200)]
         self.clock = pygame.time.Clock()
         self.dead_count = 0
@@ -35,16 +34,14 @@ class Simulation:
                                               random.randint(0, 800), random.randint(0, 800), is_student=False)
                 teacher.x = random.randint(0, self.screenSize)
                 teacher.y = random.randint(0, self.screenSize)
-                is_touching = self.touch(teacher, self.population, True)
+                is_touching = self.touch(teacher, self.teachers, True)
                 at_border = self.border(teacher)
 
                 while is_touching or at_border:
                     teacher.x = random.randint(0, self.screenSize)
                     teacher.y = random.randint(0, self.screenSize)
-                    is_touching = self.touch(teacher, self.population, True)
+                    is_touching = self.touch(teacher, self.teachers, True)
                     at_border = self.border(teacher)
-
-                self.population.append(teacher)
 
                 self.teachers.append(teacher)
 
@@ -111,9 +108,10 @@ class Simulation:
 
                 for teacher in burnouts:
                     for student in teacher.students:
-                        t = random.choice(self.teachers)
-                        if t.id != teacher.id:
-                            self.connect_teacher(student, t)
+                        if self.teachers:
+                            t = random.choice(self.teachers)
+                            if t.id != teacher.id:
+                                self.connect_teacher(student, t)
 
                 print(len(ids))
             for teacher in self.teachers:
@@ -169,18 +167,16 @@ class Simulation:
         student.x = teacher.x + random.randint(-self.teacher_size - 5, self.teacher_size + 5)
         student.y = teacher.y + random.randint(-self.teacher_size - 5, self.teacher_size + 5)
 
-        is_touching = self.touch(student, self.population, False)
+        is_touching = self.touch(student, self.teachers, False)
         at_border = self.border(student)
 
         while is_touching or at_border:
             student.x = teacher.x + random.randint(-self.teacher_size - 5, self.teacher_size + 5)
             student.y = teacher.y + random.randint(-self.teacher_size - 5, self.teacher_size + 5)
-            is_touching = self.touch(student, self.population, False)
+            is_touching = self.touch(student, self.teachers, False)
             at_border = self.border(student)
 
         student.id = teacher.id
-
-        self.population.append(student)
 
         self.students.append(student)
 

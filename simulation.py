@@ -31,7 +31,7 @@ class Simulation:
         if new_teachers:
             for i in range(n):
                 teacher = Entity(len(self.teachers) + 1, random.randint(25, 35), (200, 200, 200), random.randint(1, 3),
-                                              random.randint(0, 800), random.randint(0, 800), is_student=False)
+                                 random.randint(0, 800), random.randint(0, 800), is_student=False)
                 teacher.x = random.randint(0, self.screenSize)
                 teacher.y = random.randint(0, self.screenSize)
                 is_touching = self.touch(teacher, self.teachers, True)
@@ -51,26 +51,24 @@ class Simulation:
         else:
             for i in range(n):
                 student = Entity(len(self.students) + 1, 0, random.choice(self.colours), random.randint(1, 3),
-                                              random.randint(0, 800), random.randint(0, 800),
-                                              [random.randint(-1, 1), random.randint(-1, 1)])
+                                 random.randint(0, 800), random.randint(0, 800),
+                                 [random.randint(-1, 1), random.randint(-1, 1)])
 
                 teacher = random.choice(self.teachers)
 
                 self.connect_teacher(student, teacher)
 
-
                 i += 1
 
     def run(self):
         self.create_population(100, new_teachers=True)
-        self.create_population(100, new_teachers=False)
+        self.create_population(1000, new_teachers=False)
         stop = False
         while not stop:
             dt = self.clock.tick(60)
 
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
-
 
             # Student-to-Teacher Transition
             for student in self.students:
@@ -86,7 +84,6 @@ class Simulation:
 
                     else:
                         student.alive = False  # Didn't complete teacher training
-
 
             self.years_passed += 1 / dt / 10
 
@@ -135,7 +132,7 @@ class Simulation:
         if is_teacher:
             if population:
                 for pop in population:
-                    if (math.sqrt((entity.x - pop.x)**2 + (entity.y - pop.y)**2)) \
+                    if (math.sqrt((entity.x - pop.x) ** 2 + (entity.y - pop.y) ** 2)) \
                             < (self.teacher_size * 2 + self.student_size * 4.4):
                         return True
             else:
@@ -144,22 +141,20 @@ class Simulation:
         else:
             if population:
                 for pop in population:
-                    if (math.sqrt((entity.x - pop.x)**2 + (entity.y - pop.y)**2)) \
+                    if (math.sqrt((entity.x - pop.x) ** 2 + (entity.y - pop.y) ** 2)) \
                             < (self.teacher_size + self.student_size * 2.2):
                         return True
             else:
                 return False
             return False
 
-
     def border(self, entity):
-        if entity.x < (self.teacher_size * 2 + self.student_size * 4.4)\
-                or entity.y < (self.teacher_size * 2 + self.student_size * 4.4)\
-                or entity.x > self.screenSize - (self.teacher_size * 2 + self.student_size * 4.4)\
+        if entity.x < (self.teacher_size * 2 + self.student_size * 4.4) \
+                or entity.y < (self.teacher_size * 2 + self.student_size * 4.4) \
+                or entity.x > self.screenSize - (self.teacher_size * 2 + self.student_size * 4.4) \
                 or entity.y > self.screenSize - (self.teacher_size * 2 + self.student_size * 4.4):
             return True
         return False
-
 
     def connect_teacher(self, student, teacher):
         if student not in teacher.students:
@@ -179,6 +174,3 @@ class Simulation:
         student.id = teacher.id
 
         self.students.append(student)
-
-
-

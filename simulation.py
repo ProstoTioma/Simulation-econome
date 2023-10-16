@@ -1,176 +1,133 @@
-import random
-import time
 import math
-
-from screen import Screen
-import pygame
-from entity import Entity
 import random
-
+import pygame
+from screen import Screen
+from entity import Entity
 
 class Simulation:
     def __init__(self):
         self.screenSize = 800
-        self.screen = Screen(self.screenSize, self.screenSize)
         self.colours = [(200, 0, 0), (0, 200, 0), (0, 0, 200)]
         self.clock = pygame.time.Clock()
-        self.dead_count = 0
-
         self.students = []
         self.teachers = []
-
-        self.teacher_conversion_rate = 0.09  # 9% of students want to become teachers
-        self.teacher_completion_rate = 0.60  # 60% of students become teachers
+        self.dead_count = 0
+        self.teacher_conversion_rate = 0.09
+        self.teacher_completion_rate = 0.60
         self.years_passed = 0
         self.year = 0
-
         self.teacher_size = 10
-        self.student_size = 2
+        self.student_size = 2  # Increase student size for visibility
+        self.student_spawn_radius = 5  # Maximum distance from the teacher for student spawn
+        self.screen = Screen(self.screenSize, self.screenSize)
 
-    def create_population(self, n, new_teachers=False):
-        if new_teachers:
-            for i in range(n):
-                teacher = Entity(len(self.teachers) + 1, random.randint(25, 35), (200, 200, 200), random.randint(1, 3),
-                                 random.randint(0, 800), random.randint(0, 800), is_student=False)
-                teacher.x = random.randint(0, self.screenSize)
-                teacher.y = random.randint(0, self.screenSize)
-                is_touching = self.touch(teacher, self.teachers, True)
-                at_border = self.border(teacher)
+    def create_entity(self, is_student):
+        age = random.randint(25, 35) if not is_student else 0
+        color = (200, 200, 200) if not is_student else random.choice(self.colours)
+        x, y = random.randint(0, self.screenSize), random.randint(0, self.screenSize)
+        entity = Entity(len(self.students) + 1, age, color, x, y, is_student=is_student)
+        return entity
 
-                while is_touching or at_border:
-                    teacher.x = random.randint(0, self.screenSize)
-                    teacher.y = random.randint(0, self.screenSize)
-                    is_touching = self.touch(teacher, self.teachers, True)
-                    at_border = self.border(teacher)
+    def create_population(self, n, is_student=True):
+        population = self.students if is_student else self.teachers
+        max_attempts = 100  # Maximum attempts to create non-overlapping entity
+        for i in range(n):
+            attempts = 0
+            while attempts < max_attempts:
+                entity = self.create_entity(is_student)
+                if is_student:
+                    teacher = random.choice(self.teachers)
+                    self.spawn_student_near_teacher(entity, teacher)
+                if not self.is_entity_overlapping(entity, population) and not self.is_entity_at_border(entity):
+                    population.append(entity)
+                    break
+                attempts += 1
 
-                self.teachers.append(teacher)
+    def is_entity_overlapping(self, entity, population):
+        for other_entity in population:
+            if entity is not other_entity:
+                distance = self.get_distance(entity, other_entity)
+                min_distance = self.teacher_size * 2 if entity.is_student else self.teacher_size * 2.2 + self.student_size
+                if distance < min_distance:
+                    return True
+        return False
 
+    def get_distance(self, entity1, entity2):
+        return math.sqrt((entity1.x - entity2.x) ** 2 + (entity1.y - entity2.y) ** 2)
 
+    def is_entity_at_border(self, entity):
+        margin = self.teacher_size * 2 + self.student_size * 4.4
+        return (
+                entity.x < margin
+                or entity.y < margin
+                or entity.x > self.screenSize - margin
+                or entity.y > self.screenSize - margin
+        )
 
+    def spawn_student_near_teacher(self, student, teacher):
+        angle = random.uniform(0, 2 * math.pi)
+        distance = random.uniform(self.teacher_size + self.student_size * 2.2,
+                                  self.teacher_size + self.student_size * 4.4)
+        student.x = teacher.x + int(distance * math.cos(angle))
+        student.y = teacher.y + int(distance * math.sin(angle))
 
-        else:
-            for i in range(n):
-                student = Entity(len(self.students) + 1, 0, random.choice(self.colours), random.randint(1, 3),
-                                 random.randint(0, 800), random.randint(0, 800),
-                                 [random.randint(-1, 1), random.randint(-1, 1)])
+    def check_teacher_burnout(self):
+        # Collect the teachers who will be removed and their students
+        teachers_to_remove = []
+        students_to_reassign = []
 
-                teacher = random.choice(self.teachers)
+        for teacher in self.teachers:
+            if teacher.alive:
+                # Calculate the burnout threshold for this teacher
+                burnout_threshold = teacher.burnout * len(teacher.students) * teacher.age
 
-                self.connect_teacher(student, teacher)
+                # Generate a random number to compare with the threshold
+                random_threshold = random.uniform(0, 100)
 
-                i += 1
+                if burnout_threshold < random_threshold:
+                    # Teacher is burned out, add to the removal list
+                    teachers_to_remove.append(teacher)
+                    students_to_reassign.extend(teacher.students)
+
+        # Remove burned out teachers
+        self.teachers = [teacher for teacher in self.teachers if teacher not in teachers_to_remove]
+
+        # Reassign students to random teachers
+        for student in students_to_reassign:
+            if self.teachers:
+                new_teacher = random.choice(self.teachers)
+                new_teacher.students.append(student)
 
     def run(self):
-        self.create_population(100, new_teachers=True)
-        self.create_population(1000, new_teachers=False)
+        self.create_population(100, is_student=False)
+        self.create_population(1000, is_student=True)
         stop = False
+
         while not stop:
             dt = self.clock.tick(60)
-
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
-
-            # Student-to-Teacher Transition
-            for student in self.students:
-                if student.age > 13:
-                    if random.random() < self.teacher_conversion_rate or student.is_studying:
-                        student.is_studying = True
-                        if student.age > 19:
-                            if random.random() < self.teacher_completion_rate:
-                                student.is_student = False
-                                self.teachers.append(student)
-                                self.students.remove(student)
-                                self.create_population(1, new_teachers=True)
-
-                    else:
-                        student.alive = False  # Didn't complete teacher training
 
             self.years_passed += 1 / dt / 10
 
             if round(self.years_passed) > self.year:
                 self.year = round(self.years_passed)
                 print(self.year)
-                ids = []
-                burnouts = []
+                self.check_teacher_burnout()
 
-                for teacher in self.teachers:
-                    if teacher.alive and teacher.burnout * teacher.age * len(teacher.students) < random.uniform(0, 100):
-                        ids.append(teacher)
-                    else:
-                        burnouts.append(teacher)
-
-                self.teachers.clear()
-                for teacher in ids:
-                    self.teachers.append(teacher)
-
-                for teacher in burnouts:
-                    for student in teacher.students:
-                        if self.teachers:
-                            t = random.choice(self.teachers)
-                            if t.id != teacher.id:
-                                self.connect_teacher(student, t)
-
-                print(len(ids))
             for teacher in self.teachers:
                 if teacher.alive:
-                    pygame.draw.circle(self.screen.screen, teacher.colour,
-                                       (teacher.x, teacher.y), self.teacher_size)
+                    pygame.draw.circle(self.screen.screen, teacher.colour, (teacher.x, teacher.y), self.teacher_size)
                     for student in teacher.students:
-                        pygame.draw.circle(self.screen.screen, student.colour,
-                                           (student.x, student.y), self.student_size)
-                teacher.live(dt)
-                if teacher.age > 65:
-                    self.teachers.remove(teacher)
+                        pygame.draw.circle(self.screen.screen, student.colour, (student.x, student.y), self.student_size)
+
+            for student in self.students:
+                if student.alive:
+                    pygame.draw.circle(self.screen.screen, student.colour, (student.x, student.y), self.student_size)
+
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     stop = True
                     break
-
-    def touch(self, entity, population, is_teacher):
-        if is_teacher:
-            if population:
-                for pop in population:
-                    if (math.sqrt((entity.x - pop.x) ** 2 + (entity.y - pop.y) ** 2)) \
-                            < (self.teacher_size * 2 + self.student_size * 4.4):
-                        return True
-            else:
-                return False
-            return False
-        else:
-            if population:
-                for pop in population:
-                    if (math.sqrt((entity.x - pop.x) ** 2 + (entity.y - pop.y) ** 2)) \
-                            < (self.teacher_size + self.student_size * 2.2):
-                        return True
-            else:
-                return False
-            return False
-
-    def border(self, entity):
-        if entity.x < (self.teacher_size * 2 + self.student_size * 4.4) \
-                or entity.y < (self.teacher_size * 2 + self.student_size * 4.4) \
-                or entity.x > self.screenSize - (self.teacher_size * 2 + self.student_size * 4.4) \
-                or entity.y > self.screenSize - (self.teacher_size * 2 + self.student_size * 4.4):
-            return True
-        return False
-
-    def connect_teacher(self, student, teacher):
-        if student not in teacher.students:
-            teacher.students.append(student)
-        student.x = teacher.x + random.randint(-self.teacher_size - 5, self.teacher_size + 5)
-        student.y = teacher.y + random.randint(-self.teacher_size - 5, self.teacher_size + 5)
-
-        is_touching = self.touch(student, self.teachers, False)
-        at_border = self.border(student)
-
-        while is_touching or at_border:
-            student.x = teacher.x + random.randint(-self.teacher_size - 5, self.teacher_size + 5)
-            student.y = teacher.y + random.randint(-self.teacher_size - 5, self.teacher_size + 5)
-            is_touching = self.touch(student, self.teachers, False)
-            at_border = self.border(student)
-
-        student.id = teacher.id
-
-        self.students.append(student)

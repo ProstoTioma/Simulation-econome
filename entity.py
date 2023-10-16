@@ -19,6 +19,3 @@ class Entity:
     def live(self, dt):
         self.age += 1 / dt / 10
 
-      #  if self.age > 20:
-       #     self.alive = False
-

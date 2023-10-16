@@ -40,6 +40,9 @@ class Simulation:
                     self.spawn_student_near_teacher(entity, teacher)
                 if not self.is_entity_overlapping(entity, population) and not self.is_entity_at_border(entity):
                     population.append(entity)
+                    if is_student:
+                        entity.id = teacher.id
+                        teacher.students.append(entity)
                     break
                 attempts += 1
 
@@ -84,7 +87,7 @@ class Simulation:
                 # Generate a random number to compare with the threshold
                 random_threshold = random.uniform(0, 100)
 
-                if burnout_threshold < random_threshold:
+                if burnout_threshold > random_threshold:
                     # Teacher is burned out, add to the removal list
                     teachers_to_remove.append(teacher)
                     students_to_reassign.extend(teacher.students)
@@ -97,6 +100,7 @@ class Simulation:
             if self.teachers:
                 new_teacher = random.choice(self.teachers)
                 new_teacher.students.append(student)
+                self.spawn_student_near_teacher(student, new_teacher)
 
     def run(self):
         self.create_population(100, is_student=False)
@@ -120,10 +124,6 @@ class Simulation:
                     pygame.draw.circle(self.screen.screen, teacher.colour, (teacher.x, teacher.y), self.teacher_size)
                     for student in teacher.students:
                         pygame.draw.circle(self.screen.screen, student.colour, (student.x, student.y), self.student_size)
-
-            for student in self.students:
-                if student.alive:
-                    pygame.draw.circle(self.screen.screen, student.colour, (student.x, student.y), self.student_size)
 
 
             for event in pygame.event.get():

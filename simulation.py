@@ -22,6 +22,8 @@ class Simulation:
         self.student_spawn_radius = 5  # Maximum distance from the teacher for student spawn
         self.screen = Screen(self.screenSize, self.screenSize)
 
+        self.spawn_new_students = 50
+
     def create_entity(self, is_student):
         age = random.randint(25, 35) if not is_student else 0
         color = (200, 200, 200) if not is_student else random.choice(self.colours)
@@ -127,6 +129,7 @@ class Simulation:
                 print(self.year)
                 self.check_teacher_burnout()
                 print(len(self.students), len(self.teachers))
+                self.create_population(self.spawn_new_students, is_student=True)
 
             for teacher in self.teachers:
                 if teacher.alive:

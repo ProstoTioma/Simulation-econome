@@ -48,6 +48,14 @@ class Simulation:
                         teacher.students.append(entity)
                     break
                 attempts += 1
+            if attempts == max_attempts:
+                entity = self.create_entity(is_student)
+                if is_student:
+                    teacher = random.choice(self.teachers)
+                    self.spawn_student_near_teacher(entity, teacher)
+                    entity.id = teacher.id
+                    teacher.students.append(entity)
+                population.append(entity)
 
     def is_entity_overlapping(self, entity, population):
         for other_entity in population:

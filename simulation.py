@@ -4,6 +4,7 @@ import pygame
 from screen import Screen
 from entity import Entity
 
+
 class Simulation:
     def __init__(self):
         self.screenSize = 800
@@ -12,8 +13,8 @@ class Simulation:
         self.students = []
         self.teachers = []
         self.dead_count = 0
-        self.teacher_conversion_rate = 0.09
-        self.teacher_completion_rate = 0.60
+        self.teacher_conversion_rate = 9
+        self.teacher_completion_rate = 60
         self.years_passed = 0
         self.year = 0
         self.teacher_size = 10
@@ -96,6 +97,9 @@ class Simulation:
         self.teachers = [teacher for teacher in self.teachers if teacher not in teachers_to_remove]
 
         # Reassign students to random teachers
+        self.reassign_students(students_to_reassign)
+
+    def reassign_students(self, students_to_reassign):
         for student in students_to_reassign:
             if self.teachers:
                 new_teacher = random.choice(self.teachers)
@@ -114,20 +118,54 @@ class Simulation:
 
             self.years_passed += 1 / dt / 10
 
+            new_teachers = self.students_to_teachers(self.students)
+            for new_teacher in new_teachers:
+                self.create_population(1, False)
+
             if round(self.years_passed) > self.year:
                 self.year = round(self.years_passed)
                 print(self.year)
                 self.check_teacher_burnout()
+                print(len(self.students), len(self.teachers))
 
             for teacher in self.teachers:
                 if teacher.alive:
+                    teacher.live(dt)
+                    if teacher.age > 65:
+                        self.reassign_students(teacher.students)
                     pygame.draw.circle(self.screen.screen, teacher.colour, (teacher.x, teacher.y), self.teacher_size)
                     for student in teacher.students:
-                        pygame.draw.circle(self.screen.screen, student.colour, (student.x, student.y), self.student_size)
-
+                        student.live(dt)
+                        pygame.draw.circle(self.screen.screen, student.colour, (student.x, student.y),
+                                           self.student_size)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     stop = True
                     break
+
+    def students_to_teachers(self, students):
+        new_teachers = []
+        students_to_remove = []
+        for student in students:
+            if student.age > 12 and not student.is_studying:
+                if random.uniform(0, 100) < self.teacher_conversion_rate:
+                    student.is_studying = True
+                else:
+                    students_to_remove.append(student)
+            elif student.is_studying and student.age > 16:
+                if random.uniform(0, 100) < self.teacher_completion_rate:
+                    new_teachers.append(student)
+                    students_to_remove.append(student)
+
+        for st in students_to_remove:
+            students.remove(st)
+            for teacher in self.teachers:
+                if st in teacher.students:
+                    teacher.students.remove(st)
+                    break
+
+        return new_teachers
+
+# TODO remove students after 20 years, add new students

@@ -14,7 +14,7 @@ class Entity:
         self.is_student = is_student
         self.is_studying = is_studying
         self.students = []
-        self.burnout = 0.03
+        self.burnout = 0.01
 
     def live(self, dt):
         self.age += 1 / dt / 10

@@ -22,7 +22,7 @@ class Simulation:
         self.student_spawn_radius = 5  # Maximum distance from the teacher for student spawn
         self.screen = Screen(self.screenSize, self.screenSize)
 
-        self.spawn_new_students = 50
+        self.spawn_new_students = 100
 
     def create_entity(self, is_student):
         age = random.randint(25, 35) if not is_student else 0
@@ -45,8 +45,9 @@ class Simulation:
                 if not self.is_entity_overlapping(entity, population) and not self.is_entity_at_border(entity):
                     population.append(entity)
                     if is_student:
-                        entity.id = teacher.id
-                        teacher.students.append(entity)
+                        if self.teachers:
+                            entity.id = teacher.id
+                            teacher.students.append(entity)
                     break
                 attempts += 1
             if attempts == max_attempts:

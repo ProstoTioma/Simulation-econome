@@ -39,8 +39,9 @@ class Simulation:
             while attempts < max_attempts:
                 entity = self.create_entity(is_student)
                 if is_student:
-                    teacher = random.choice(self.teachers)
-                    self.spawn_student_near_teacher(entity, teacher)
+                    if self.teachers:
+                        teacher = random.choice(self.teachers)
+                        self.spawn_student_near_teacher(entity, teacher)
                 if not self.is_entity_overlapping(entity, population) and not self.is_entity_at_border(entity):
                     population.append(entity)
                     if is_student:
@@ -61,7 +62,7 @@ class Simulation:
         for other_entity in population:
             if entity is not other_entity:
                 distance = self.get_distance(entity, other_entity)
-                min_distance = self.teacher_size * 2 if entity.is_student else self.teacher_size * 2.2 + self.student_size
+                min_distance = self.teacher_size * 2 if entity.is_student else self.teacher_size * 4.4 + self.student_size
                 if distance < min_distance:
                     return True
         return False

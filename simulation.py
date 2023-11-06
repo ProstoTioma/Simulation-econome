@@ -7,7 +7,7 @@ from entity import Entity
 
 class Simulation:
     def __init__(self):
-        self.screenSize = 800
+        self.screenSize = 900
         self.colours = [(200, 0, 0), (0, 200, 0), (0, 0, 200)]
         self.clock = pygame.time.Clock()
         self.students = []
@@ -22,14 +22,19 @@ class Simulation:
         self.student_spawn_radius = 5  # Maximum distance from the teacher for student spawn
         self.screen = Screen(self.screenSize, self.screenSize)
 
+        self.data = "Year Students Teachers \n"
+
+        self.file_path = "data.txt"
+
         self.spawn_new_students = 100
 
     def create_entity(self, is_student):
-        age = random.randint(25, 35) if not is_student else 0
+        age = random.randint(25, 35) if not is_student else random.randint(0, 11)
         color = (200, 200, 200) if not is_student else random.choice(self.colours)
         x, y = random.randint(0, self.screenSize), random.randint(0, self.screenSize)
         entity = Entity(len(self.students) + 1, age, color, x, y, is_student=is_student)
         return entity
+
 
     def create_population(self, n, is_student=True):
         population = self.students if is_student else self.teachers
@@ -130,16 +135,23 @@ class Simulation:
 
             self.years_passed += 1 / dt / 10
 
-            new_teachers = self.students_to_teachers(self.students)
-            for new_teacher in new_teachers:
-                self.create_population(1, False)
-
             if round(self.years_passed) > self.year:
+                new_teachers = self.students_to_teachers(self.students)
+                for new_teacher in new_teachers:
+                    self.create_population(1, False)
+
                 self.year = round(self.years_passed)
                 print(self.year)
                 self.check_teacher_burnout()
                 print(len(self.students), len(self.teachers))
                 self.create_population(self.spawn_new_students, is_student=True)
+                self.data += f"{self.year} {len(self.students)} {len(self.teachers)}\n"
+                self.teachers = [teacher for teacher in self.teachers if teacher.alive]
+                for teacher in self.teachers:
+                    teacher.students = []
+                self.reassign_students(self.students)
+
+
 
             for teacher in self.teachers:
                 if teacher.alive:
@@ -155,6 +167,10 @@ class Simulation:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                    with open(self.file_path, 'w') as file:
+                        # Write the data to the file
+                        file.write(self.data)
+
                     stop = True
                     break
 

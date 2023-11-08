@@ -29,7 +29,7 @@ class Simulation:
         self.spawn_new_students = 100
 
     def create_entity(self, is_student):
-        age = random.randint(25, 35) if not is_student else random.randint(0, 11)
+        age = random.randint(25, 35) if not is_student else random.randint(0, 15)
         color = (200, 200, 200) if not is_student else random.choice(self.colours)
         x, y = random.randint(0, self.screenSize), random.randint(0, self.screenSize)
         entity = Entity(len(self.students) + 1, age, color, x, y, is_student=is_student)

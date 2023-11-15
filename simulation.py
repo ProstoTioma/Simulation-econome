@@ -1,8 +1,10 @@
 import math
 import random
+
 import pygame
-from screen import Screen
+
 from entity import Entity
+from screen import Screen
 
 
 class Simulation:
@@ -34,7 +36,6 @@ class Simulation:
         x, y = random.randint(0, self.screenSize), random.randint(0, self.screenSize)
         entity = Entity(len(self.students) + 1, age, color, x, y, is_student=is_student)
         return entity
-
 
     def create_population(self, n, is_student=True):
         population = self.students if is_student else self.teachers
@@ -133,7 +134,7 @@ class Simulation:
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
 
-            self.years_passed += 1 / dt / 10
+            self.years_passed += 1 / dt
 
             if round(self.years_passed) > self.year:
                 new_teachers = self.students_to_teachers(self.students)
@@ -150,8 +151,6 @@ class Simulation:
                 for teacher in self.teachers:
                     teacher.students = []
                 self.reassign_students(self.students)
-
-
 
             for teacher in self.teachers:
                 if teacher.alive:
@@ -196,5 +195,3 @@ class Simulation:
                     break
 
         return new_teachers
-
-# TODO remove students after 20 years, add new students

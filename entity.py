@@ -1,4 +1,3 @@
-import time
 import random
 
 
@@ -17,5 +16,5 @@ class Entity:
         self.burnout = 0.01
 
     def live(self, dt):
-        self.age += 1 / dt / 10
+        self.age += 1 / dt
 

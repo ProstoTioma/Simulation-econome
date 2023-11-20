@@ -6,6 +6,8 @@ import pygame
 from entity import Entity
 from screen import Screen
 
+random.seed(42)
+
 
 class Simulation:
     def __init__(self):
@@ -14,36 +16,39 @@ class Simulation:
         self.clock = pygame.time.Clock()
         self.students = []
         self.teachers = []
-        self.dead_count = 0
-        self.teacher_conversion_rate = 9
+        self.teacher_conversion_rate = 4
         self.teacher_completion_rate = 60
         self.years_passed = 0
         self.year = 0
         self.teacher_size = 10
-        self.student_size = 2  # Increase student size for visibility
-        self.student_spawn_radius = 5  # Maximum distance from the teacher for student spawn
+        self.student_size = 2
+        self.student_spawn_radius = 5
         self.screen = Screen(self.screenSize, self.screenSize)
 
         self.data = "Year Students Teachers \n"
 
         self.file_path = "data.txt"
 
-        self.spawn_new_students = 100
+        self.spawn_new_students = 300
+        self.entity_id_counter = 1  # New global ID counter
 
-    def create_entity(self, is_student):
+    def create_entity(self, is_student, is_new=False):
         age = random.randint(25, 35) if not is_student else random.randint(0, 15)
+        if is_new:
+            age = 0 if random.randint(0, 10) < 7 else random.randint(0, 15)
         color = (200, 200, 200) if not is_student else random.choice(self.colours)
         x, y = random.randint(0, self.screenSize), random.randint(0, self.screenSize)
-        entity = Entity(len(self.students) + 1, age, color, x, y, is_student=is_student)
+        entity = Entity(self.entity_id_counter, age, color, x, y, is_student=is_student)
+        self.entity_id_counter += 1  # Increment the global ID counter
         return entity
 
-    def create_population(self, n, is_student=True):
+    def create_population(self, n, is_student=True, is_new=False):
         population = self.students if is_student else self.teachers
-        max_attempts = 100  # Maximum attempts to create non-overlapping entity
+        max_attempts = 10  # Maximum attempts to create non-overlapping entity
         for i in range(n):
             attempts = 0
             while attempts < max_attempts:
-                entity = self.create_entity(is_student)
+                entity = self.create_entity(is_student, is_new)
                 if is_student:
                     if self.teachers:
                         teacher = random.choice(self.teachers)
@@ -57,8 +62,8 @@ class Simulation:
                     break
                 attempts += 1
             if attempts == max_attempts:
-                entity = self.create_entity(is_student)
-                if is_student:
+                entity = self.create_entity(is_student, is_new)
+                if is_student and len(self.teachers) > 0:
                     teacher = random.choice(self.teachers)
                     self.spawn_student_near_teacher(entity, teacher)
                     entity.id = teacher.id
@@ -106,7 +111,7 @@ class Simulation:
                 # Generate a random number to compare with the threshold
                 random_threshold = random.uniform(0, 100)
 
-                if burnout_threshold > random_threshold:
+                if burnout_threshold > random_threshold or teacher.age > 65:
                     # Teacher is burned out, add to the removal list
                     teachers_to_remove.append(teacher)
                     students_to_reassign.extend(teacher.students)
@@ -119,17 +124,17 @@ class Simulation:
 
     def reassign_students(self, students_to_reassign):
         for student in students_to_reassign:
-            if self.teachers:
+            if len(self.teachers) > 0:
                 new_teacher = random.choice(self.teachers)
                 new_teacher.students.append(student)
+                student.id = new_teacher.id
                 self.spawn_student_near_teacher(student, new_teacher)
 
     def run(self):
         self.create_population(100, is_student=False)
-        self.create_population(1000, is_student=True)
-        stop = False
+        self.create_population(2000, is_student=True)
 
-        while not stop:
+        while True:  # Simplified loop condition
             dt = self.clock.tick(60)
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
@@ -138,14 +143,14 @@ class Simulation:
 
             if round(self.years_passed) > self.year:
                 new_teachers = self.students_to_teachers(self.students)
-                for new_teacher in new_teachers:
+                for _ in new_teachers:
                     self.create_population(1, False)
 
                 self.year = round(self.years_passed)
-                print(self.year)
+                print("Year: ", self.year)
                 self.check_teacher_burnout()
-                print(len(self.students), len(self.teachers))
-                self.create_population(self.spawn_new_students, is_student=True)
+                print(f"Students: {len(self.students)}, Teachers: {len(self.teachers)}, Students/Teachers: {len(self.students) // (len(self.teachers) + 1)}")
+                self.create_population(self.spawn_new_students, is_student=True, is_new=True)
                 self.data += f"{self.year} {len(self.students)} {len(self.teachers)}\n"
                 self.teachers = [teacher for teacher in self.teachers if teacher.alive]
                 for teacher in self.teachers:
@@ -155,8 +160,6 @@ class Simulation:
             for teacher in self.teachers:
                 if teacher.alive:
                     teacher.live(dt)
-                    if teacher.age > 65:
-                        self.reassign_students(teacher.students)
                     pygame.draw.circle(self.screen.screen, teacher.colour, (teacher.x, teacher.y), self.teacher_size)
                     for student in teacher.students:
                         student.live(dt)
@@ -170,7 +173,6 @@ class Simulation:
                         # Write the data to the file
                         file.write(self.data)
 
-                    stop = True
                     break
 
     def students_to_teachers(self, students):

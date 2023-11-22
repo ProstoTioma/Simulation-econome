@@ -12,7 +12,7 @@ random.seed(42)
 class Simulation:
     def __init__(self):
         self.screenSize = 900
-        self.colours = [(200, 0, 0), (0, 200, 0), (0, 0, 200)]
+        self.colours = (100, 100, 100)
         self.clock = pygame.time.Clock()
         self.students = []
         self.teachers = []
@@ -36,7 +36,7 @@ class Simulation:
         age = random.randint(25, 35) if not is_student else random.randint(0, 15)
         if is_new:
             age = 0 if random.randint(0, 10) < 7 else random.randint(0, 15)
-        color = (200, 200, 200) if not is_student else random.choice(self.colours)
+        color = (200, 200, 200) if not is_student else self.colours
         x, y = random.randint(0, self.screenSize), random.randint(0, self.screenSize)
         entity = Entity(self.entity_id_counter, age, color, x, y, is_student=is_student)
         self.entity_id_counter += 1  # Increment the global ID counter
@@ -130,6 +130,28 @@ class Simulation:
                 student.id = new_teacher.id
                 self.spawn_student_near_teacher(student, new_teacher)
 
+    def calculate_color(self, student):
+        # Define the age range for interpolation
+        min_age = 0
+        max_age = 15
+
+        # Normalize age to the range [0, 1]
+        normalized_age = (student.age - min_age) / (max_age - min_age)
+
+        # Interpolate between green (0, 255, 0) and red (255, 0, 0)
+        green = int((1 - normalized_age) * 255)
+        red = int(normalized_age * 255)
+
+        # The blue component can be kept constant, or you can modify it based on your preference
+        blue = 0
+        green = 255 if green > 255 else green
+        red = 255 if red > 255 else red
+        green = 0 if green < 0 else green
+        red = 0 if red < 0 else red
+
+
+        return (red, green, blue)
+
     def run(self):
         self.create_population(100, is_student=False)
         self.create_population(2000, is_student=True)
@@ -156,6 +178,8 @@ class Simulation:
                 for teacher in self.teachers:
                     teacher.students = []
                 self.reassign_students(self.students)
+                for st in self.students:
+                    st.colour = self.calculate_color(st)
 
             for teacher in self.teachers:
                 if teacher.alive:
@@ -179,12 +203,12 @@ class Simulation:
         new_teachers = []
         students_to_remove = []
         for student in students:
-            if student.age > 12 and not student.is_studying:
+            if student.age > 13 and not student.is_studying:
                 if random.uniform(0, 100) < self.teacher_conversion_rate:
                     student.is_studying = True
                 else:
                     students_to_remove.append(student)
-            elif student.is_studying and student.age > 16:
+            elif student.is_studying and student.age > 18:
                 if random.uniform(0, 100) < self.teacher_completion_rate:
                     new_teachers.append(student)
                     students_to_remove.append(student)

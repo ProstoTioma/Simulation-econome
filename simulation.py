@@ -25,7 +25,7 @@ class Simulation:
         self.student_spawn_radius = 5
         self.screen = Screen(self.screenSize, self.screenSize)
 
-        self.data = "Year Students Teachers Students/Teachers\n"
+        self.data = "Year, Students, Teachers, Students/Teachers\n"
 
         self.file_path = "data.csv"
 

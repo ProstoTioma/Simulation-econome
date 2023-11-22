@@ -25,9 +25,9 @@ class Simulation:
         self.student_spawn_radius = 5
         self.screen = Screen(self.screenSize, self.screenSize)
 
-        self.data = "Year Students Teachers \n"
+        self.data = "Year Students Teachers Students/Teachers\n"
 
-        self.file_path = "data.txt"
+        self.file_path = "data.csv"
 
         self.spawn_new_students = 300
         self.entity_id_counter = 1  # New global ID counter
@@ -151,7 +151,7 @@ class Simulation:
                 self.check_teacher_burnout()
                 print(f"Students: {len(self.students)}, Teachers: {len(self.teachers)}, Students/Teachers: {len(self.students) // (len(self.teachers) + 1)}")
                 self.create_population(self.spawn_new_students, is_student=True, is_new=True)
-                self.data += f"{self.year} {len(self.students)} {len(self.teachers)}\n"
+                self.data += f"{self.year}, {len(self.students)}, {len(self.teachers)}, {len(self.students) // (len(self.teachers) + 1)}\n"
                 self.teachers = [teacher for teacher in self.teachers if teacher.alive]
                 for teacher in self.teachers:
                     teacher.students = []

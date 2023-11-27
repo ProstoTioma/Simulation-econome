@@ -29,7 +29,8 @@ class Simulation:
 
         self.file_path = "data.csv"
 
-        self.spawn_new_students = 300
+
+        self.spawn_new_students = 500
         self.entity_id_counter = 1  # New global ID counter
 
     def create_entity(self, is_student, is_new=False):
@@ -157,11 +158,10 @@ class Simulation:
         self.create_population(2000, is_student=True)
 
         while True:  # Simplified loop condition
-            dt = self.clock.tick(60)
             pygame.display.update()
             self.screen.screen.fill((100, 100, 100))
 
-            self.years_passed += 1 / dt
+            self.years_passed += 1
 
             if round(self.years_passed) > self.year:
                 new_teachers = self.students_to_teachers(self.students)
@@ -171,8 +171,9 @@ class Simulation:
                 self.year = round(self.years_passed)
                 print("Year: ", self.year)
                 self.check_teacher_burnout()
+                if len(self.teachers) > 0 and len(self.students) / len(self.teachers) < 50:
+                    self.create_population(self.spawn_new_students, is_student=True, is_new=True)
                 print(f"Students: {len(self.students)}, Teachers: {len(self.teachers)}, Students/Teachers: {len(self.students) // (len(self.teachers) + 1)}")
-                self.create_population(self.spawn_new_students, is_student=True, is_new=True)
                 self.data += f"{self.year}, {len(self.students)}, {len(self.teachers)}, {len(self.students) // (len(self.teachers) + 1)}\n"
                 self.teachers = [teacher for teacher in self.teachers if teacher.alive]
                 for teacher in self.teachers:
@@ -183,10 +184,11 @@ class Simulation:
 
             for teacher in self.teachers:
                 if teacher.alive:
-                    teacher.live(dt)
-                    pygame.draw.circle(self.screen.screen, teacher.colour, (teacher.x, teacher.y), self.teacher_size)
+                    teacher.live()
+                    pygame.draw.circle(self.screen.screen, teacher.colour, (teacher.x, teacher.y),
+                                       self.teacher_size)
                     for student in teacher.students:
-                        student.live(dt)
+                        student.live()
                         pygame.draw.circle(self.screen.screen, student.colour, (student.x, student.y),
                                            self.student_size)
 

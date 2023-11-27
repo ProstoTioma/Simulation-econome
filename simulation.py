@@ -16,12 +16,12 @@ class Simulation:
         self.clock = pygame.time.Clock()
         self.students = []
         self.teachers = []
-        self.teacher_conversion_rate = 4
-        self.teacher_completion_rate = 60
+        self.teacher_conversion_rate = 7.64
+        self.teacher_completion_rate = 100
         self.years_passed = 0
         self.year = 0
-        self.teacher_size = 10
-        self.student_size = 2
+        self.teacher_size = 5
+        self.student_size = 1
         self.student_spawn_radius = 5
         self.screen = Screen(self.screenSize, self.screenSize)
 
@@ -29,8 +29,7 @@ class Simulation:
 
         self.file_path = "data.csv"
 
-
-        self.spawn_new_students = 500
+        self.spawn_new_students = 300
         self.entity_id_counter = 1  # New global ID counter
 
     def create_entity(self, is_student, is_new=False):
@@ -45,7 +44,7 @@ class Simulation:
 
     def create_population(self, n, is_student=True, is_new=False):
         population = self.students if is_student else self.teachers
-        max_attempts = 10  # Maximum attempts to create non-overlapping entity
+        max_attempts = 1  # Maximum attempts to create non-overlapping entity
         for i in range(n):
             attempts = 0
             while attempts < max_attempts:
@@ -154,8 +153,8 @@ class Simulation:
         return (red, green, blue)
 
     def run(self):
-        self.create_population(100, is_student=False)
-        self.create_population(2000, is_student=True)
+        self.create_population(400, is_student=False)
+        self.create_population(8000, is_student=True)
 
         while True:  # Simplified loop condition
             pygame.display.update()
@@ -171,8 +170,18 @@ class Simulation:
                 self.year = round(self.years_passed)
                 print("Year: ", self.year)
                 self.check_teacher_burnout()
-                if len(self.teachers) > 0 and len(self.students) / len(self.teachers) < 50:
+                current_ratio = len(self.students) / len(self.teachers) if len(self.teachers) > 0 else 0
+                if current_ratio < 30:
                     self.create_population(self.spawn_new_students, is_student=True, is_new=True)
+                else:
+                    excess_students = len(self.students) - 30 * len(self.teachers)
+                    for _ in range(excess_students):
+                        student_to_remove = random.choice(self.students)
+                        self.students.remove(student_to_remove)
+                        for teacher in self.teachers:
+                            if student_to_remove in teacher.students:
+                                teacher.students.remove(student_to_remove)
+
                 print(f"Students: {len(self.students)}, Teachers: {len(self.teachers)}, Students/Teachers: {len(self.students) // (len(self.teachers) + 1)}")
                 self.data += f"{self.year}, {len(self.students)}, {len(self.teachers)}, {len(self.students) // (len(self.teachers) + 1)}\n"
                 self.teachers = [teacher for teacher in self.teachers if teacher.alive]

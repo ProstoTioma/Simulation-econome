@@ -13,8 +13,8 @@ class Entity:
         self.is_student = is_student
         self.is_studying = is_studying
         self.students = []
-        self.burnout = 0.01
-        self.speed = 100
+        self.burnout = 0.023
+        self.speed = 1
 
     def live(self):
         self.age += 1 * self.speed

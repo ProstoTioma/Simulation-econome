@@ -4,6 +4,7 @@ import random
 import pygame
 
 from entity import Entity
+import pygame.image
 from screen import Screen
 
 random.seed(42)
@@ -29,7 +30,7 @@ class Simulation:
 
         self.file_path = "data.csv"
 
-        self.spawn_new_students = 300
+        self.spawn_new_students = random.randint(250, 350)
         self.entity_id_counter = 1  # New global ID counter
 
     def create_entity(self, is_student, is_new=False):
@@ -158,6 +159,7 @@ class Simulation:
 
         while True:  # Simplified loop condition
             pygame.display.update()
+
             self.screen.screen.fill((100, 100, 100))
 
             self.years_passed += 1
@@ -171,7 +173,7 @@ class Simulation:
                 print("Year: ", self.year)
                 self.check_teacher_burnout()
                 current_ratio = len(self.students) / len(self.teachers) if len(self.teachers) > 0 else 0
-                if current_ratio < 30:
+                if current_ratio < 30 and len(self.teachers) != 0:
                     self.create_population(self.spawn_new_students, is_student=True, is_new=True)
                 else:
                     excess_students = len(self.students) - 30 * len(self.teachers)
@@ -182,7 +184,7 @@ class Simulation:
                             if student_to_remove in teacher.students:
                                 teacher.students.remove(student_to_remove)
 
-                print(f"Students: {len(self.students)}, Teachers: {len(self.teachers)}, Students/Teachers: {len(self.students) // (len(self.teachers) + 1)}")
+                print(f"Students: {len(self.students)}, Teachers: {len(self.teachers)}, Students/Teachers: {len(self.students) // (len(self.teachers) + 1)}, Average age of student: {sum([student.age for student in self.students]) / (len(self.students) + 1)}, Average age of teacher: {sum([teacher.age for teacher in self.teachers]) / (len(self.teachers) + 1)}")
                 self.data += f"{self.year}, {len(self.students)}, {len(self.teachers)}, {len(self.students) // (len(self.teachers) + 1)}\n"
                 self.teachers = [teacher for teacher in self.teachers if teacher.alive]
                 for teacher in self.teachers:
@@ -200,6 +202,12 @@ class Simulation:
                         student.live()
                         pygame.draw.circle(self.screen.screen, student.colour, (student.x, student.y),
                                            self.student_size)
+
+            frame_number = round(self.years_passed)
+            frame_filename = f"images/frame_{frame_number:04d}.png"  # Adjust the filename format as needed
+            pygame.image.save(self.screen.screen, frame_filename)
+            if len(self.teachers) == 0:
+                break
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

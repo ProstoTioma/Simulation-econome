@@ -7,7 +7,6 @@ from entity import Entity
 import pygame.image
 from screen import Screen
 
-random.seed(42)
 
 
 class Simulation:
@@ -158,6 +157,7 @@ class Simulation:
         self.create_population(8000, is_student=True)
 
         while True:  # Simplified loop condition
+            random.seed(42)
             pygame.display.update()
 
             self.screen.screen.fill((100, 100, 100))
